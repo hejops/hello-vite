@@ -29,14 +29,16 @@ function Ticker() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCount(new Date());
-    }, 2_000);
+    }, 1_000);
     return () => clearInterval(timer);
   }, []);
 
+  const t = time.toString().split(" (");
   return (
     <>
       <div>Time:</div>
-      <div>{time.toString()}</div>
+      <div>{t[0]}</div>
+      <div>{"(" + t[1]}</div>
     </>
   );
 }
@@ -55,7 +57,8 @@ function ISSRow({ pui }: Record<string, string>) {
   sub.setRequestedSnapshot("yes");
   sub.addListener({
     onItemUpdate: (obj): void => {
-      setVal(Number(obj.getValue("Value")));
+      const v = Number(obj.getValue("Value"));
+      setVal(Number(v.toFixed(2)));
       setName(obj.getItemName());
     },
   });
@@ -109,8 +112,11 @@ function App() {
 
   return (
     <>
+      <h1>hello world</h1>
       <Counter />
+      <p />
       <Ticker />
+      <p />
       {ls_enabled ? <ISSTable /> : msg}
     </>
   );
