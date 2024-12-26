@@ -78,14 +78,18 @@ function ISSRow({ pui }: Record<string, string>) {
 function ISSTable() {
   return (
     <table>
-      <tr>
-        <th>Name</th>
-        <th>Value</th>
-      </tr>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Value</th>
+        </tr>
+      </thead>
 
-      {PUIS.map((v, i) => (
-        <ISSRow key={i.toString()} pui={v} />
-      ))}
+      <tbody>
+        {PUIS.map((v, i) => (
+          <ISSRow key={i.toString()} pui={v} />
+        ))}
+      </tbody>
     </table>
   );
 }
