@@ -1,6 +1,8 @@
 import { LightstreamerClient, Subscription } from "lightstreamer-client-web";
 import { useEffect, useState } from "react";
 
+// https://github.com/Lightstreamer/Lightstreamer-example-ISSLive-client-javascript/blob/master/src/assets/PUIList.xml
+// https://demos.lightstreamer.com/ISSLive/
 const PUIS = ["AIRLOCK000049", "S0000005"];
 
 const LS_CLIENT = new LightstreamerClient(
@@ -28,7 +30,6 @@ function Ticker() {
     const timer = setInterval(() => {
       setCount(new Date());
     }, 2_000);
-
     return () => clearInterval(timer);
   }, []);
 
@@ -48,17 +49,9 @@ function ISSRow({ pui }: Record<string, string>) {
   // https://gist.github.com/simonw/76f03f49be58344bfa64c9d5d9f0ec29, a
   // single-file html that manually updates the dom
 
-  // console.log(client.connectionDetails);
-
   const [val, setVal] = useState(0);
   const [name, setName] = useState("");
-  const sub = new Subscription(
-    // https://github.com/Lightstreamer/Lightstreamer-example-ISSLive-client-javascript/blob/master/src/assets/PUIList.xml
-    // https://demos.lightstreamer.com/ISSLive/
-    "MERGE",
-    [pui],
-    ["Value"],
-  );
+  const sub = new Subscription("MERGE", [pui], ["Value"]);
   sub.setRequestedSnapshot("yes");
   sub.addListener({
     onItemUpdate: (obj): void => {
@@ -76,6 +69,8 @@ function ISSRow({ pui }: Record<string, string>) {
 }
 
 function ISSTable() {
+  const rows = PUIS.map((v, i) => <ISSRow key={i.toString()} pui={v} />);
+
   return (
     <table>
       <thead>
@@ -85,21 +80,38 @@ function ISSTable() {
         </tr>
       </thead>
 
-      <tbody>
-        {PUIS.map((v, i) => (
-          <ISSRow key={i.toString()} pui={v} />
-        ))}
-      </tbody>
+      <tbody>{rows}</tbody>
     </table>
   );
 }
 
 function App() {
+  const [ls_enabled, setEnabled] = useState(false);
+  const [interval, _setInterval] = useState(1_000);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (!ls_enabled) {
+        console.log(LS_CLIENT.getStatus(), interval);
+        setEnabled(LS_CLIENT.getStatus().indexOf("STREAMING") >= 0);
+        _setInterval(interval * 2);
+      }
+    }, interval);
+    return () => clearInterval(timer);
+  }, [ls_enabled, interval]);
+
+  const msg = (
+    <>
+      <p>Could not establish Lightstreamer connection!</p>
+      <p>Consider disabling your adblocker.</p>
+    </>
+  );
+
   return (
     <>
       <Counter />
       <Ticker />
-      <ISSTable />
+      {ls_enabled ? <ISSTable /> : msg}
     </>
   );
 }
